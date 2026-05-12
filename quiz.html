@@ -9,22 +9,23 @@
         #chat-box { 
             border: 1px solid #ccc; 
             padding: 20px; 
-            height: 350px; 
+            height: 400px; 
             margin-bottom: 15px; 
             background: #fdfdfd; 
             overflow-y: auto;
             border-radius: 10px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
+            scroll-behavior: smooth;
         }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 0.95rem; }
-        .user-msg { background: #3498db; color: white; align-self: flex-end; }
-        .bot-msg { background: #ecf0f1; color: #2c3e50; align-self: flex-start; border-left: 4px solid #2c3e50; }
+        .msg { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.4; }
+        .user-msg { background: #3498db; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .bot-msg { background: #ecf0f1; color: #2c3e50; align-self: flex-start; border-left: 4px solid #2c3e50; border-bottom-left-radius: 2px; }
         
         .input-area { display: flex; gap: 10px; }
-        #userInput { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
-        #sendBtn { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #userInput { flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #ddd; outline: none; }
+        #sendBtn { padding: 10px 25px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
         #sendBtn:hover { background: #34495e; }
     </style>
 </head>
@@ -44,14 +45,14 @@
 
 <main>
     <h2><i class="fas fa-robot"></i> Advanced History Bot</h2>
-    <p>Ask a question about a person, event, or country (e.g., <i>Napoleon, World War II, Kazakhstan</i>).</p>
+    <p>Ask a question about any person, event, or era in English.</p>
     
     <div id="chat-box">
-        <div class="msg bot-msg">Hello! I am connected to global archives. What would you like to learn about today?</div>
+        <div class="msg bot-msg">Hello! I'm your AI History Assistant. Ask me anything, for example: "Who was Julius Caesar?" or "Tell me about the Industrial Revolution".</div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Type a topic here...">
+        <input type="text" id="userInput" placeholder="Type your question here...">
         <button id="sendBtn" onclick="askBot()">Ask Bot</button>
     </div>
 </main>
@@ -64,58 +65,67 @@
 
         if (!userInput) return;
 
-        // Отображаем сообщение пользователя
+        // 1. Показываем сообщение пользователя
         chatBox.innerHTML += `<div class="msg user-msg">${userInput}</div>`;
         inputField.value = "";
 
-        // Создаем элемент для ответа бота с индикатором загрузки
         const loadingId = "load-" + Date.now();
-        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Thinking... <i class="fas fa-spinner fa-spin"></i></div>`;
+        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Searching archives... <i class="fas fa-spinner fa-spin"></i></div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
         const loadingElem = document.getElementById(loadingId);
 
-        // 1. ПРОВЕРКА НА ПРИВЕТСТВИЯ
-        const lowerInput = userInput.toLowerCase().replace(/[^\w\s]/gi, '');
-        const greetings = ["hello", "hi", "hey", "greetings", "good morning", "good evening"];
-        
-        if (greetings.includes(lowerInput)) {
-            loadingElem.innerHTML = "Hello! I'm ready to help. Please tell me which historical person or event you're interested in.";
+        // 2. Обработка приветствий
+        const cleanInput = userInput.toLowerCase().replace(/[^\w\s]/gi, '');
+        const greetings = ["hello", "hi", "hey", "greetings", "good morning"];
+        if (greetings.includes(cleanInput)) {
+            loadingElem.innerHTML = "Hi there! I'm ready. What historical mystery shall we solve today?";
             return;
         }
 
-        // 2. ОЧИСТКА ЗАПРОСА (Извлекаем ключевое слово)
-        // Если пользователь пишет "Tell me about Napoleon", мы удаляем лишнее и ищем только "Napoleon"
+        // 3. Очистка вопроса от "мусора"
         let query = userInput.toLowerCase();
         const stopPhrases = [
-            "tell me about", "who is", "who was", "what is", 
-            "what was", "search for", "do you know about", "find information about"
+            "tell me about", "who is", "who was", "what is", "what was", 
+            "where is", "when was", "search for", "do you know about", 
+            "can you tell me", "information on"
         ];
         
         stopPhrases.forEach(phrase => {
             query = query.replace(phrase, "");
         });
-        query = query.trim();
+        query = query.replace("?", "").trim();
 
         try {
-            // Запрос к API Википедии по очищенному слову
-            const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
-            const response = await fetch(url);
-            
-            if (response.ok) {
-                const data = await response.json();
-                loadingElem.innerHTML = `<strong>${data.title}:</strong> ${data.extract}`;
+            // ШАГ 1: Поиск наиболее подходящего заголовка статьи
+            const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+            const searchRes = await fetch(searchUrl);
+            const searchData = await searchRes.json();
+
+            if (searchData.query.search.length > 0) {
+                const bestTitle = searchData.query.search[0].title;
+
+                // ШАГ 2: Получение краткого содержания этой статьи
+                const infoUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`;
+                const infoRes = await fetch(infoUrl);
+                const data = await infoRes.json();
+
+                if (infoRes.ok) {
+                    loadingElem.innerHTML = `<strong>${data.title}:</strong> ${data.extract}`;
+                } else {
+                    loadingElem.innerHTML = "I found something about '" + bestTitle + "', but couldn't load the details. Try being more specific.";
+                }
             } else {
-                loadingElem.innerHTML = "I couldn't find specific records for '" + query + "'. Please try checking the spelling or use a more general term.";
+                loadingElem.innerHTML = "I couldn't find any historical records for your question. Please check the spelling or try another topic.";
             }
         } catch (error) {
-            loadingElem.innerHTML = "Connection error. Please check your internet and try again later.";
+            loadingElem.innerHTML = "📡 Connection error. The global archive is currently unreachable.";
         }
         
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Поддержка клавиши Enter
+    // Отправка по Enter
     document.getElementById('userInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') askBot();
     });
