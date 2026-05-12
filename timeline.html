@@ -55,7 +55,7 @@
 
 <main>
     <h2>Global Timeline Agent</h2>
-    <p>Введите любой год (например, 1492 или 1914), и Агент найдет случайное событие из мировой истории.</p>
+    <p>Enter any year (e.g., 1492 or 1914), and the Agent will find a random event from world history.</p>
 
     <div class="search-section">
         <input type="number" id="yearInput" placeholder="Enter year (e.g. 1812)">
@@ -82,13 +82,13 @@
             return;
         }
 
-        // Показываем индикатор загрузки
+        // Show loading indicator
         loader.style.display = "block";
         resultDiv.style.opacity = "0.5";
 
         try {
-            // Используем Numbers API для получения исторических фактов
-            const response = await fetch(`http://numbersapi.com/${year}/year`);
+            // Using Numbers API to fetch historical facts via HTTPS
+            const response = await fetch(`https://numbersapi.com/${year}/year`);
             const data = await response.text();
 
             if (response.ok) {
