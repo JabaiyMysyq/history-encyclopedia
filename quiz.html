@@ -4,8 +4,16 @@
     <meta charset="UTF-8">
     <title>History Bot | Interactive</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        #chat-box { border: 1px solid #ccc; padding: 20px; height: 200px; margin-bottom: 10px; background: #f9f9f9; }
+        #chat-box { 
+            border: 1px solid #ccc; 
+            padding: 20px; 
+            height: 200px; 
+            margin-bottom: 10px; 
+            background: #f9f9f9; 
+            overflow-y: auto; /* Добавлена прокрутка для длинных диалогов */
+        }
     </style>
 </head>
 <body>
@@ -17,7 +25,7 @@
             <a href="index.html">Home</a>
             <a href="timeline.html">Timeline Agent</a>
             <a href="quiz.html" class="active">History Bot</a>
-        </div>
+            <a href="creators.html">Creators</a> </div>
     </nav>
 </header>
 
@@ -33,9 +41,12 @@
         function askBot() {
             const box = document.getElementById('chat-box');
             const input = document.getElementById('userInput').value;
+            if (input.trim() === "") return; // Защита от пустых сообщений
+
             box.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
             box.innerHTML += `<p><strong>Bot:</strong> That is a great question! Based on my records, that event changed history significantly.</p>`;
             document.getElementById('userInput').value = "";
+            box.scrollTop = box.scrollHeight; // Авто-прокрутка вниз при ответе
         }
     </script>
 </main>
