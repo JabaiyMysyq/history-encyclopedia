@@ -31,11 +31,26 @@
             text-align: left;
             min-height: 100px;
             line-height: 1.6;
+            transition: opacity 0.3s ease;
         }
         .loader {
             display: none;
             color: #3498db;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+        .search-btn {
+            padding: 12px 25px;
+            cursor: pointer;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .search-btn:hover {
+            background: #34495e;
         }
     </style>
 </head>
@@ -59,11 +74,13 @@
 
     <div class="search-section">
         <input type="number" id="yearInput" placeholder="Enter year (e.g. 1812)">
-        <button onclick="fetchHistory()" style="padding: 12px 25px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 5px; font-weight: bold;">
+        <button onclick="fetchHistory()" class="search-btn">
             <i class="fas fa-search"></i> Search History
         </button>
         
-        <div id="loader" class="loader"><i class="fas fa-spinner fa-spin"></i> Searching archives...</div>
+        <div id="loader" class="loader">
+            <i class="fas fa-spinner fa-spin"></i> Searching archives...
+        </div>
         
         <div id="eventResult" class="result-box">
             The Agent is ready. Enter a year and start the search.
@@ -73,39 +90,48 @@
 
 <script>
     async function fetchHistory() {
-        const year = document.getElementById('yearInput').value;
+        const yearInput = document.getElementById('yearInput');
+        const year = yearInput.value;
         const resultDiv = document.getElementById('eventResult');
         const loader = document.getElementById('loader');
 
         if (!year) {
             resultDiv.innerHTML = "❌ Please enter a year first.";
+            resultDiv.style.borderLeftColor = "#e74c3c";
             return;
         }
 
-        // Show loading indicator
+        // UI Feedback
         loader.style.display = "block";
-        resultDiv.style.opacity = "0.5";
+        resultDiv.style.opacity = "0.4";
 
         try {
-            // Using Numbers API to fetch historical facts via HTTPS
+            // Using HTTPS is critical for GitHub Pages deployment
             const response = await fetch(`https://numbersapi.com/${year}/year`);
             const data = await response.text();
 
             if (response.ok) {
-                resultDiv.innerHTML = `<strong>In ${year}:</strong> ${data}`;
+                resultDiv.innerHTML = `<strong>In the year ${year}:</strong> ${data}`;
                 resultDiv.style.borderLeftColor = "#27ae60";
             } else {
-                resultDiv.innerHTML = "⚠️ No records found for this year. Try another one!";
+                resultDiv.innerHTML = "⚠️ No records found for this year. Please try another one!";
                 resultDiv.style.borderLeftColor = "#e67e22";
             }
         } catch (error) {
-            resultDiv.innerHTML = "📡 Connection error. The Agent couldn't reach the database.";
+            resultDiv.innerHTML = "📡 Connection error. The Agent couldn't reach the secure database. Please try again.";
             resultDiv.style.borderLeftColor = "#e74c3c";
         } finally {
             loader.style.display = "none";
             resultDiv.style.opacity = "1";
         }
     }
+
+    // Add support for the "Enter" key
+    document.getElementById('yearInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            fetchHistory();
+        }
+    });
 </script>
 
 <footer>
