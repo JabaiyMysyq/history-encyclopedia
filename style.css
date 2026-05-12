@@ -125,7 +125,8 @@ footer {
     margin-top: 20px;
 }
 
-.card-links a {
+/* Стили для кнопок (включая кнопку Email) и ссылок в карточках */
+.card-links a, .btn-copy-email {
     text-decoration: none;
     color: #2c3e50;
     font-size: 0.9rem;
@@ -136,10 +137,20 @@ footer {
     display: flex;
     align-items: center;
     gap: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.3s ease;
 }
 
-.card-links a:hover {
+.card-links a:hover, .btn-copy-email:hover {
     background: #3498db;
     color: white;
     border-color: #3498db;
+}
+
+/* Состояние при успешном копировании */
+.btn-copy-email.copied {
+    background-color: #27ae60 !important;
+    color: white !important;
+    border-color: #27ae60 !important;
 }
