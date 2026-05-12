@@ -2,18 +2,29 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>History Bot | Interactive</title>
+    <title>History Bot | AI Knowledge</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         #chat-box { 
             border: 1px solid #ccc; 
             padding: 20px; 
-            height: 200px; 
-            margin-bottom: 10px; 
-            background: #f9f9f9; 
-            overflow-y: auto; /* Добавлена прокрутка для длинных диалогов */
+            height: 350px; 
+            margin-bottom: 15px; 
+            background: #fdfdfd; 
+            overflow-y: auto;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; }
+        .user-msg { background: #3498db; color: white; align-self: flex-end; }
+        .bot-msg { background: #ecf0f1; color: #2c3e50; align-self: flex-start; border-left: 4px solid #2c3e50; }
+        
+        .input-area { display: flex; gap: 10px; }
+        #userInput { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
+        #sendBtn { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -25,37 +36,72 @@
             <a href="index.html">Home</a>
             <a href="timeline.html">Timeline Agent</a>
             <a href="quiz.html" class="active">History Bot</a>
-            <a href="creators.html">Creators</a> </div>
+            <a href="creators.html">Creators</a>
+        </div>
     </nav>
 </header>
 
 <main>
-    <h2>Ask the History Bot</h2>
+    <h2><i class="fas fa-robot"></i> Advanced History Bot</h2>
+    <p>Задайте вопрос о личности, битве или стране (например: <i>Napoleon, WWII, Kazakhstan</i>)</p>
+    
     <div id="chat-box">
-        <p><strong>Bot:</strong> Hello! Ask me about the Great Wall of China or the Renaissance.</p>
+        <div class="msg bot-msg">Привет! Я подключен к глобальным архивам. О чем ты хочешь узнать?</div>
     </div>
-    <input type="text" id="userInput" placeholder="Type your question...">
-    <button onclick="askBot()">Ask</button>
 
-    <script>
-        function askBot() {
-            const box = document.getElementById('chat-box');
-            const input = document.getElementById('userInput').value;
-            if (input.trim() === "") return; // Защита от пустых сообщений
-
-            box.innerHTML += `<p><strong>You:</strong> ${input}</p>`;
-            box.innerHTML += `<p><strong>Bot:</strong> That is a great question! Based on my records, that event changed history significantly.</p>`;
-            document.getElementById('userInput').value = "";
-            box.scrollTop = box.scrollHeight; // Авто-прокрутка вниз при ответе
-        }
-    </script>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Напишите тему...">
+        <button id="sendBtn" onclick="askBot()">Ask Bot</button>
+    </div>
 </main>
+
+<script>
+    async function askBot() {
+        const inputField = document.getElementById('userInput');
+        const query = inputField.value.trim();
+        const chatBox = document.getElementById('chat-box');
+
+        if (!query) return;
+
+        // Сообщение пользователя
+        chatBox.innerHTML += `<div class="msg user-msg">${query}</div>`;
+        inputField.value = "";
+
+        // Индикатор загрузки
+        const loadingId = "load-" + Date.now();
+        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Думаю... <i class="fas fa-spinner fa-spin"></i></div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        try {
+            // Запрос к Wikipedia API (ищем краткую справку)
+            const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            const loadingElem = document.getElementById(loadingId);
+            
+            if (data.extract) {
+                loadingElem.innerHTML = `<strong>${data.title}:</strong> ${data.extract}`;
+            } else {
+                loadingElem.innerHTML = "К сожалению, в моих архивах нет точного ответа на этот вопрос. Попробуй написать название более точно (на английском).";
+            }
+        } catch (error) {
+            document.getElementById(loadingId).innerHTML = "Ошибка связи с сервером. Попробуй позже.";
+        }
+        
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Позволяет отправлять сообщение нажатием Enter
+    document.getElementById('userInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') askBot();
+    });
+</script>
 
 <footer>
     <div class="footer-content">
         <p><strong>Authors:</strong> Magzan Ayim & Aizere Berdaly</p>
-        <p>© 2026 | ICT - Management | Narxoz University</p>
-        <button id="backToTop" onclick="window.scrollTo(0, 0)">↑ Back to Top</button>
+        <p>© 2026 | ICT Project | Narxoz</p>
     </div>
 </footer>
 
