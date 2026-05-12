@@ -59,41 +59,63 @@
 <script>
     async function askBot() {
         const inputField = document.getElementById('userInput');
-        const query = inputField.value.trim();
+        let userInput = inputField.value.trim();
         const chatBox = document.getElementById('chat-box');
 
-        if (!query) return;
+        if (!userInput) return;
 
-        // User message
-        chatBox.innerHTML += `<div class="msg user-msg">${query}</div>`;
+        // Отображаем сообщение пользователя
+        chatBox.innerHTML += `<div class="msg user-msg">${userInput}</div>`;
         inputField.value = "";
 
-        // Loading indicator
+        // Создаем элемент для ответа бота с индикатором загрузки
         const loadingId = "load-" + Date.now();
-        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Searching archives... <i class="fas fa-spinner fa-spin"></i></div>`;
+        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Thinking... <i class="fas fa-spinner fa-spin"></i></div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
+        const loadingElem = document.getElementById(loadingId);
+
+        // 1. ПРОВЕРКА НА ПРИВЕТСТВИЯ
+        const lowerInput = userInput.toLowerCase().replace(/[^\w\s]/gi, '');
+        const greetings = ["hello", "hi", "hey", "greetings", "good morning", "good evening"];
+        
+        if (greetings.includes(lowerInput)) {
+            loadingElem.innerHTML = "Hello! I'm ready to help. Please tell me which historical person or event you're interested in.";
+            return;
+        }
+
+        // 2. ОЧИСТКА ЗАПРОСА (Извлекаем ключевое слово)
+        // Если пользователь пишет "Tell me about Napoleon", мы удаляем лишнее и ищем только "Napoleon"
+        let query = userInput.toLowerCase();
+        const stopPhrases = [
+            "tell me about", "who is", "who was", "what is", 
+            "what was", "search for", "do you know about", "find information about"
+        ];
+        
+        stopPhrases.forEach(phrase => {
+            query = query.replace(phrase, "");
+        });
+        query = query.trim();
+
         try {
-            // Wikipedia API request (HTTPS used to avoid connection errors)
+            // Запрос к API Википедии по очищенному слову
             const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
             const response = await fetch(url);
-            
-            const loadingElem = document.getElementById(loadingId);
             
             if (response.ok) {
                 const data = await response.json();
                 loadingElem.innerHTML = `<strong>${data.title}:</strong> ${data.extract}`;
             } else {
-                loadingElem.innerHTML = "Sorry, I couldn't find specific records for this topic. Please check the spelling or try a more general term (in English).";
+                loadingElem.innerHTML = "I couldn't find specific records for '" + query + "'. Please try checking the spelling or use a more general term.";
             }
         } catch (error) {
-            document.getElementById(loadingId).innerHTML = "Connection error. Please check your internet and try again later.";
+            loadingElem.innerHTML = "Connection error. Please check your internet and try again later.";
         }
         
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Support Enter key
+    // Поддержка клавиши Enter
     document.getElementById('userInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') askBot();
     });
