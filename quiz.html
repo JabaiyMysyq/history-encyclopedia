@@ -18,13 +18,14 @@
             flex-direction: column;
             gap: 10px;
         }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 0.95rem; }
         .user-msg { background: #3498db; color: white; align-self: flex-end; }
         .bot-msg { background: #ecf0f1; color: #2c3e50; align-self: flex-start; border-left: 4px solid #2c3e50; }
         
         .input-area { display: flex; gap: 10px; }
         #userInput { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ddd; }
-        #sendBtn { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        #sendBtn { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #sendBtn:hover { background: #34495e; }
     </style>
 </head>
 <body>
@@ -43,14 +44,14 @@
 
 <main>
     <h2><i class="fas fa-robot"></i> Advanced History Bot</h2>
-    <p>Задайте вопрос о личности, битве или стране (например: <i>Napoleon, WWII, Kazakhstan</i>)</p>
+    <p>Ask a question about a person, event, or country (e.g., <i>Napoleon, World War II, Kazakhstan</i>).</p>
     
     <div id="chat-box">
-        <div class="msg bot-msg">Привет! Я подключен к глобальным архивам. О чем ты хочешь узнать?</div>
+        <div class="msg bot-msg">Hello! I am connected to global archives. What would you like to learn about today?</div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Напишите тему...">
+        <input type="text" id="userInput" placeholder="Type a topic here...">
         <button id="sendBtn" onclick="askBot()">Ask Bot</button>
     </div>
 </main>
@@ -63,36 +64,36 @@
 
         if (!query) return;
 
-        // Сообщение пользователя
+        // User message
         chatBox.innerHTML += `<div class="msg user-msg">${query}</div>`;
         inputField.value = "";
 
-        // Индикатор загрузки
+        // Loading indicator
         const loadingId = "load-" + Date.now();
-        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Думаю... <i class="fas fa-spinner fa-spin"></i></div>`;
+        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Searching archives... <i class="fas fa-spinner fa-spin"></i></div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
-            // Запрос к Wikipedia API (ищем краткую справку)
+            // Wikipedia API request (HTTPS used to avoid connection errors)
             const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
             const response = await fetch(url);
-            const data = await response.json();
-
+            
             const loadingElem = document.getElementById(loadingId);
             
-            if (data.extract) {
+            if (response.ok) {
+                const data = await response.json();
                 loadingElem.innerHTML = `<strong>${data.title}:</strong> ${data.extract}`;
             } else {
-                loadingElem.innerHTML = "К сожалению, в моих архивах нет точного ответа на этот вопрос. Попробуй написать название более точно (на английском).";
+                loadingElem.innerHTML = "Sorry, I couldn't find specific records for this topic. Please check the spelling or try a more general term (in English).";
             }
         } catch (error) {
-            document.getElementById(loadingId).innerHTML = "Ошибка связи с сервером. Попробуй позже.";
+            document.getElementById(loadingId).innerHTML = "Connection error. Please check your internet and try again later.";
         }
         
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Позволяет отправлять сообщение нажатием Enter
+    // Support Enter key
     document.getElementById('userInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') askBot();
     });
@@ -101,7 +102,8 @@
 <footer>
     <div class="footer-content">
         <p><strong>Authors:</strong> Magzan Ayim & Aizere Berdaly</p>
-        <p>© 2026 | ICT Project | Narxoz</p>
+        <p>© 2026 | ICT Project | Narxoz University</p>
+        <button id="backToTop" onclick="window.scrollTo(0, 0)">↑ Back to Top</button>
     </div>
 </footer>
 
