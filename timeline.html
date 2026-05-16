@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
-    <title>Timeline Agent | Monthly Events</title>
+    <title>Таймлайн Агенті | Тарихи Оқиғалар</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         .search-section { background: #f4f7f6; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px; }
-        #yearInput { padding: 12px; width: 180px; border-radius: 5px; border: 2px solid #2c3e50; font-size: 1rem; }
+        #yearInput { padding: 12px; width: 180px; border-radius: 5px; border: 2px solid #2c3e50; font-size: 1rem; outline: none; }
         .result-box { 
             margin-top: 25px; padding: 20px; background: white; border-radius: 10px; 
             border-left: 8px solid #27ae60; text-align: left; line-height: 1.6; 
@@ -25,40 +25,40 @@
     <nav>
         <div class="logo">HistoryWorld 🏛️</div>
         <div class="menu">
-            <a href="index.html">Home</a>
-            <a href="timeline.html" class="active">Timeline Agent</a>
-            <a href="quiz.html">History Bot</a>
-            <a href="creators.html">Creators</a>
+            <a href="index.html">Басты бет</a>
+            <a href="timeline.html" class="active">Таймлайн</a>
+            <a href="quiz.html">Тарих Боты</a>
+            <a href="creators.html">Авторлар</a>
         </div>
     </nav>
 </header>
 
 <main>
-    <h2>Global Timeline Agent</h2>
-    <p>Enter a year to see key historical events organized by months.</p>
+    <h2>Жаһандық Таймлайн Агенті</h2>
+    <p>Жылды енгізіңіз (мысалы, 1945 немесе 1991) және Агент сол жылдың негізгі оқиғаларын айлар бойынша көрсетеді.</p>
 
     <div class="search-section">
-        <input type="number" id="yearInput" placeholder="Year (e.g. 1939)">
+        <input type="number" id="yearInput" placeholder="Жыл (мысалы: 1991)">
         <button onclick="fetchHistory()" class="search-btn">
-            <i class="fas fa-search"></i> Search Timeline
+            <i class="fas fa-search"></i> Оқиғаларды іздеу
         </button>
         
-        <div id="loader" class="loader"><i class="fas fa-spinner fa-spin"></i> Reconstructing timeline...</div>
+        <div id="loader" class="loader"><i class="fas fa-spinner fa-spin"></i> Хронология қайта құрылуда...</div>
         
         <div id="eventResult" class="result-box">
-            The timeline is ready. Please enter a year and press Search or Enter.
+            Таймлайн дайын. Жылды енгізіп, Издеу немесе Enter пернесін басыңыз.
         </div>
     </div>
 </main>
 
-<script>
+<script {contentFetchId="uploaded:image_9f1d94.png-a076d189-39d9-4782-984c-e8ea1f196b69"}>
     async function fetchHistory() {
         const year = document.getElementById('yearInput').value;
         const resultDiv = document.getElementById('eventResult');
         const loader = document.getElementById('loader');
 
         if (!year) {
-            resultDiv.innerHTML = "❌ Please enter a year.";
+            resultDiv.innerHTML = "❌ Жылды енгізіңіз.";
             return;
         }
 
@@ -66,8 +66,8 @@
         resultDiv.style.opacity = "0.5";
 
         try {
-            // Используем MediaWiki API для получения разделов страницы года
-            const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${year}&prop=text&section=1&format=json&origin=*`;
+            // Қазақша Уикипедия парақшасынан деректерді алу
+            const url = `https://kk.wikipedia.org/w/api.php?action=parse&page=${year}&prop=text&section=1&format=json&origin=*`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -76,19 +76,16 @@
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlContent, 'text/html');
                 
-                // Извлекаем списки событий
-                const lists = doc.querySelectorAll('ul');
-                let formattedHistory = `<h3><i class="fas fa-calendar-alt"></i> Key Events of ${year}</h3>`;
+                let formattedHistory = `<h3><i class="fas fa-calendar-alt"></i> ${year} жылдың басты оқиғалары</h3>`;
                 
-                const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-                
-                // Простая логика сопоставления: ищем упоминания месяцев в списках
+                // Қазақша ай аттары
+                const months = ["Қаңтар", "Ақпан", "Наурыз", "Сәуір", "Мамыр", "Маусым", "Шілде", "Тамыз", "Қыркүйек", "Қазан", "Қараша", "Желтоқсан"];
                 let foundAnything = false;
                 
                 months.forEach(month => {
                     let monthEvents = [];
                     doc.querySelectorAll('li').forEach(li => {
-                        if (li.innerText.includes(month) && li.innerText.length > 20) {
+                        if (li.innerText.includes(month) && li.innerText.length > 15) {
                             monthEvents.push(li.innerText);
                         }
                     });
@@ -96,7 +93,7 @@
                     if (monthEvents.length > 0) {
                         foundAnything = true;
                         formattedHistory += `<div class="month-header">${month}</div>`;
-                        // Берем первые 3 важных события для краткости
+                        // Ең маңызды 3 оқиғаны шығару
                         monthEvents.slice(0, 3).forEach(ev => {
                             formattedHistory += `<div class="event-item">• ${ev}</div>`;
                         });
@@ -104,24 +101,28 @@
                 });
 
                 if (!foundAnything) {
-                    // Запасной вариант, если структура страницы другая
-                    formattedHistory += "<p>Detailed monthly records are unavailable for this specific year. Here is a general summary:</p>";
-                    formattedHistory += `<div class="event-item">${doc.querySelector('p').innerText}</div>`;
+                    formattedHistory += "<p>Бұл жыл үшін айлар бойынша егжей-тегжейлі деректер табылмады. Жалпы мәлімет:</p>";
+                    const firstParagraph = doc.querySelector('p');
+                    if(firstParagraph) {
+                        formattedHistory += `<div class="event-item">${firstParagraph.innerText}</div>`;
+                    } else {
+                        formattedHistory += `<div class="event-item">${year} жыл туралы мәлімет мұрағатта аз.</div>`;
+                    }
                 }
 
                 resultDiv.innerHTML = formattedHistory;
             } else {
-                resultDiv.innerHTML = "⚠️ No detailed monthly records found for this year.";
+                resultDiv.innerHTML = "⚠️ Бұл жыл үшін егжей-тегжейлі тарихи жазбалар табылмады.";
             }
         } catch (error) {
-            resultDiv.innerHTML = "📡 Connection error. Please try again later.";
+            resultDiv.innerHTML = "📡 Байланыс қатесі. Қайтадан байқап көріңіз.";
         } finally {
             loader.style.display = "none";
             resultDiv.style.opacity = "1";
         }
     }
 
-    // РЕАЛИЗАЦИЯ НАЖАТИЯ ENTER
+    // Enter басу арқылы іздеу
     document.getElementById('yearInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             fetchHistory();
@@ -131,8 +132,8 @@
 
 <footer>
     <div class="footer-content">
-        <p><strong>Authors:</strong> Magzan Ayim & Aizere Berdaly</p>
-        <p>© 2026 | ICT Project | Narxoz University</p>
+        <p><strong>Авторлар:</strong> Мағжан Айым & Әйзере Бердалы</p>
+        <p>© 2026 | ICT Жоба | Нархоз Университеті</p>
     </div>
 </footer>
 
