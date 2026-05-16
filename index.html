@@ -13,7 +13,7 @@
             padding: 20px;
             border-radius: 12px;
             max-width: 500px;
-            margin: 0 auto 40px;
+            margin: 0 auto 30px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.03);
         }
 
@@ -57,6 +57,46 @@
             background: #2c3e50;
             color: #fff;
         }
+
+        /* ИИ-Видео панелінің стильдері */
+        .video-ai-panel {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 650px;
+            margin: 0 auto 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .video-ai-panel h3 {
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .video-ai-panel p {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin: 0 0 20px 0;
+        }
+
+        .video-wrapper {
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            line-height: 0;
+        }
+
+        .video-wrapper video {
+            width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -97,6 +137,17 @@
                     <i class="fas fa-pause"></i> Пауза
                 </button>
             </div>
+        </div>
+    </section>
+
+    <section class="video-ai-panel">
+        <h3><i class="fas fa-video" style="color: #e67e22;"></i> ЖИ-Аватар таныстырылымы</h3>
+        <p>Жобаның мақсаты мен виртуалды тарихи көмекшілердің жұмысын түсіндіретін ИИ арқылы жасалған бейнеролик</p>
+        
+        <div class="video-wrapper">
+            <video src="video.mp4" controls preload="metadata">
+                Сіздің браузеріңіз видеоны қолдамайды.
+            </video>
         </div>
     </section>
 
