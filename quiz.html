@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="kk">
 <head>
     <meta charset="UTF-8">
-    <title>History Bot | AI Knowledge</title>
+    <title>Тарих Боты | AI Knowledge</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -21,7 +21,7 @@
         }
         .msg { padding: 12px 18px; border-radius: 15px; max-width: 85%; font-size: 0.95rem; line-height: 1.4; }
         .user-msg { background: #3498db; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .bot-msg { background: #ecf0f1; color: #2c3e50; align-self: flex-start; border-left: 4px solid #2c3e50; border-bottom-left-radius: 2px; }
+        .bot-msg { background: #2c3e50; color: white; align-self: flex-start; border-left: 4px solid #3498db; border-bottom-left-radius: 2px; }
         
         .input-area { display: flex; gap: 10px; }
         #userInput { flex: 1; padding: 12px; border-radius: 5px; border: 1px solid #ddd; outline: none; }
@@ -35,25 +35,25 @@
     <nav>
         <div class="logo">HistoryWorld 🏛️</div>
         <div class="menu">
-            <a href="index.html">Home</a>
-            <a href="timeline.html">Timeline Agent</a>
-            <a href="quiz.html" class="active">History Bot</a>
-            <a href="creators.html">Creators</a>
+            <a href="index.html">Басты бет</a>
+            <a href="timeline.html">Таймлайн</a>
+            <a href="quiz.html" class="active">Тарих Боты</a>
+            <a href="creators.html">Авторлар</a>
         </div>
     </nav>
 </header>
 
 <main>
-    <h2><i class="fas fa-robot"></i> Advanced History Bot</h2>
-    <p>Ask a question about any person, event, or era in English.</p>
+    <h2><i class="fas fa-robot"></i> Жетілдірілген Тарих Боты</h2>
+    <p>Кез келген тарихи тұлға, оқиға немесе дәуір туралы қазақша сұрақ қойыңыз.</p>
     
     <div id="chat-box">
-        <div class="msg bot-msg">Hello! I'm your AI History Assistant. Ask me anything, for example: "Who was Julius Caesar?" or "Tell me about the Industrial Revolution".</div>
+        <div class="msg bot-msg">Сәлем! Мен сіздің AI тарих көмекшіңізбін. Маған кез келген сұрақ қойыңыз, мысалы: «Шыңғыс хан деген кім?» немесе «Алтын Орда туралы айтып бер».</div>
     </div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Type your question here...">
-        <button id="sendBtn" onclick="askBot()">Ask Bot</button>
+        <input type="text" id="userInput" placeholder="Сұрағыңызды осында жазыңыз...">
+        <button id="sendBtn" onclick="askBot()">Сұрау</button>
     </div>
 </main>
 
@@ -65,30 +65,29 @@
 
         if (!userInput) return;
 
-        // 1. Показываем сообщение пользователя
+        // 1. Пайдаланушы хабарламасын көрсету
         chatBox.innerHTML += `<div class="msg user-msg">${userInput}</div>`;
         inputField.value = "";
 
         const loadingId = "load-" + Date.now();
-        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Searching archives... <i class="fas fa-spinner fa-spin"></i></div>`;
+        chatBox.innerHTML += `<div class="msg bot-msg" id="${loadingId}">Мұрағаттарды іздеу... <i class="fas fa-spinner fa-spin"></i></div>`;
         chatBox.scrollTop = chatBox.scrollHeight;
 
         const loadingElem = document.getElementById(loadingId);
 
-        // 2. Обработка приветствий
-        const cleanInput = userInput.toLowerCase().replace(/[^\w\s]/gi, '');
-        const greetings = ["hello", "hi", "hey", "greetings", "good morning"];
+        // 2. Сәлемдесуді өңдеу
+        const cleanInput = userInput.toLowerCase().replace(/[^\w\sа-яәғқңөұүһі]/gi, '');
+        const greetings = ["сәлем", "салем", "ассалаумағалейкум", "қайырлы күн", "привет"];
         if (greetings.includes(cleanInput)) {
-            loadingElem.innerHTML = "Hi there! I'm ready. What historical mystery shall we solve today?";
+            loadingElem.innerHTML = "Сәлем! Мен дайынмын. Бүгін қандай тарихи құпияны ашамыз?";
             return;
         }
 
-        // 3. Очистка вопроса от "мусора"
+        // 3. Сұрақты тазалау (артық сөздерді алып тастау)
         let query = userInput.toLowerCase();
         const stopPhrases = [
-            "tell me about", "who is", "who was", "what is", "what was", 
-            "where is", "when was", "search for", "do you know about", 
-            "can you tell me", "information on"
+            "туралы айтып бер", "туралы ақпарат", "деген кім", "деген не", 
+            "кім болды", "не болды", "туралы мәлімет", "іздеу"
         ];
         
         stopPhrases.forEach(phrase => {
@@ -97,35 +96,35 @@
         query = query.replace("?", "").trim();
 
         try {
-            // ШАГ 1: Поиск наиболее подходящего заголовка статьи
-            const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
+            // ҚАДАМ 1: kk.wikipedia арқылы ең сәйкес мақала тақырыбын іздеу
+            const searchUrl = `https://kk.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&format=json&origin=*`;
             const searchRes = await fetch(searchUrl);
             const searchData = await searchRes.json();
 
             if (searchData.query.search.length > 0) {
                 const bestTitle = searchData.query.search[0].title;
 
-                // ШАГ 2: Получение краткого содержания этой статьи
-                const infoUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`;
+                // ҚАДАМ 2: Осы мақаланың қысқаша мазмұнын алу
+                const infoUrl = `https://kk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(bestTitle)}`;
                 const infoRes = await fetch(infoUrl);
                 const data = await infoRes.json();
 
                 if (infoRes.ok) {
                     loadingElem.innerHTML = `<strong>${data.title}:</strong> ${data.extract}`;
                 } else {
-                    loadingElem.innerHTML = "I found something about '" + bestTitle + "', but couldn't load the details. Try being more specific.";
+                    loadingElem.innerHTML = "Мен '" + bestTitle + "' туралы ақпарат таптым, бірақ мәліметті жүктеу мүмкін болмады. Нақтырақ сұрап көріңіз.";
                 }
             } else {
-                loadingElem.innerHTML = "I couldn't find any historical records for your question. Please check the spelling or try another topic.";
+                loadingElem.innerHTML = "Сіздің сұрағыңыз бойынша ешқандай тарихи дерек табылмады. Жазылуын тексеріп немесе басқа тақырыпты байқап көріңіз.";
             }
         } catch (error) {
-            loadingElem.innerHTML = "📡 Connection error. The global archive is currently unreachable.";
+            loadingElem.innerHTML = "📡 Байланыс қатесі. Жаһандық мұрағатқа қосылу мүмкін болмады.";
         }
         
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Отправка по Enter
+    // Enter пернесін қолдау
     document.getElementById('userInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') askBot();
     });
@@ -133,9 +132,8 @@
 
 <footer>
     <div class="footer-content">
-        <p><strong>Authors:</strong> Magzan Ayim & Aizere Berdaly</p>
-        <p>© 2026 | ICT Project | Narxoz University</p>
-        <button id="backToTop" onclick="window.scrollTo(0, 0)">↑ Back to Top</button>
+        <p><strong>Авторлар:</strong> Мағжан Айым & Әйзере Бердалы</p>
+        <p>© 2026 | ICT Жоба | Нархоз Университеті</p>
     </div>
 </footer>
 
