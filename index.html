@@ -5,6 +5,59 @@
     <title>HistoryWorld | Басты бет</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* Аудио ойнатқыш панелінің стильдері */
+        .audio-ai-panel {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: 0 auto 40px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+
+        .audio-ai-panel h3 {
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .audio-ai-panel p {
+            color: #7f8c8d;
+            font-size: 0.85rem;
+            margin: 0 0 15px 0;
+        }
+
+        .audio-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .audio-btn {
+            padding: 8px 16px;
+            border: 1px solid #2c3e50;
+            background: transparent;
+            color: #2c3e50;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .audio-btn:hover {
+            background: #2c3e50;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,8 +76,29 @@
 <main style="text-align: center; padding: 40px 20px;">
     <h1 style="font-size: 3rem; color: #2c3e50; margin-bottom: 20px;">Тарих әлеміне қош келдіңіз!</h1>
     <p style="font-size: 1.2rem; max-width: 800px; margin: 0 auto 40px; color: #555; line-height: 1.8;">
-        HistoryWorld — бұл жасанды интеллект агенттерінің көмегімен өткен заман оқиғаларын зерттеуге арналған интерактивті платформа. Біздің құралдарды пайдаланып, тарих қойнауына саяхат жасаңыз.
+        HistoryWorld — бұл жасанды интеллект агенттерінего көмегімен өткен заман оқиғаларын зерттеуге арналған интерактивті платформа. Біздің құралдарды пайдаланып, тарих қойнауына саяхат жасаңыз.
     </p>
+
+    <section class="audio-ai-panel">
+        <h3><i class="fas fa-music" style="color: #3498db;"></i> ИИ ұсынған фондық аудио</h3>
+        <p>Шоғырлануға арналған эмбиент-трек, нейрожелі арқылы генерацияланған (Suno AI / Mubert)</p>
+        
+        <div class="audio-controls">
+            <audio id="bgMusic" loop style="width: 100%; display: none;">
+                <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3" type="audio/mpeg">
+                Сіздің браузеріңіз аудионы қолдамайды.
+            </audio>
+            
+            <div class="audio-buttons">
+                <button class="audio-btn" onclick="document.getElementById('bgMusic').play()">
+                    <i class="fas fa-play"></i> Қосу
+                </button>
+                <button class="audio-btn" onclick="document.getElementById('bgMusic').pause()">
+                    <i class="fas fa-pause"></i> Пауза
+                </button>
+            </div>
+        </div>
+    </section>
 
     <div style="display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; margin-top: 20px;">
         <div style="background: #f8f9fa; border: 1px solid #ddd; padding: 30px; border-radius: 10px; width: 300px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;">
