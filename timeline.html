@@ -51,7 +51,7 @@
     </div>
 </main>
 
-<script {contentFetchId="uploaded:image_9f1d94.png-a076d189-39d9-4782-984c-e8ea1f196b69"}>
+<script>
     async function fetchHistory() {
         const year = document.getElementById('yearInput').value;
         const resultDiv = document.getElementById('eventResult');
@@ -66,8 +66,8 @@
         resultDiv.style.opacity = "0.5";
 
         try {
-            // Қазақша Уикипедия парақшасынан деректерді алу
-            const url = `https://kk.wikipedia.org/w/api.php?action=parse&page=${year}&prop=text&section=1&format=json&origin=*`;
+            // Запрашиваем всю страницу целиком, чтобы спастись от пустых секций
+            const url = `https://kk.wikipedia.org/w/api.php?action=parse&page=${year}&prop=text&format=json&origin=*`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -78,51 +78,87 @@
                 
                 let formattedHistory = `<h3><i class="fas fa-calendar-alt"></i> ${year} жылдың басты оқиғалары</h3>`;
                 
-                // Қазақша ай аттары
-                const months = ["Қаңтар", "Ақпан", "Наурыз", "Сәуір", "Мамыр", "Маусым", "Шілде", "Тамыз", "Қыркүйек", "Қазан", "Қараша", "Желтоқсан"];
+                // Названия месяцев для поиска в любом регистре и с любыми окончаниями
+                const months = [
+                    { name: "Қаңтар", search: "қаңтар" },
+                    { name: "Ақпан", search: "ақпан" },
+                    { name: "Наурыз", search: "наурыз" },
+                    { name: "Сәуір", search: "сәуір" },
+                    { name: "Мамыр", search: "мамыр" },
+                    { name: "Маусым", search: "маусым" },
+                    { name: "Шілде", search: "шілде" },
+                    { name: "Тамыз", search: "тамыз" },
+                    { name: "Қыркүйек", search: "қыркүйе" },
+                    { name: "Қазан", search: "қазан" },
+                    { name: "Қараша", search: "қараша" },
+                    { name: "Желтоқсан", search: "желтоқс" }
+                ];
+                
                 let foundAnything = false;
                 
+                // Ищем тексты во ВСЕХ возможных элементах (списки и абзацы)
+                const allElements = doc.querySelectorAll('li, p');
+
                 months.forEach(month => {
                     let monthEvents = [];
-                    doc.querySelectorAll('li').forEach(li => {
-                        if (li.innerText.includes(month) && li.innerText.length > 15) {
-                            monthEvents.push(li.innerText);
+                    
+                    allElements.forEach(el => {
+                        const txt = el.innerText.trim();
+                        const txtLower = txt.toLowerCase();
+                        
+                        // Если текст длинный, содержит месяц и это не служебная ссылка Википедии
+                        if (txtLower.includes(month.search) && txt.length > 25) {
+                            if (!txtLower.includes("басқа мағыналар") && !txtLower.includes("ортаққорда") && !txtLower.includes("сілтемелер")) {
+                                // Избегаем дубликатов
+                                if (!monthEvents.includes(txt)) {
+                                    monthEvents.push(txt);
+                                }
+                            }
                         }
                     });
 
                     if (monthEvents.length > 0) {
                         foundAnything = true;
-                        formattedHistory += `<div class="month-header">${month}</div>`;
-                        // Ең маңызды 3 оқиғаны шығару
+                        formattedHistory += `<div class="month-header">${month.name}</div>`;
+                        // Выводим топ-3 события на месяц
                         monthEvents.slice(0, 3).forEach(ev => {
                             formattedHistory += `<div class="event-item">• ${ev}</div>`;
                         });
                     }
                 });
 
+                // Сверхнадежный резервный план: если по месяцам разбить не удалось, вытаскиваем первые осмысленные абзацы
                 if (!foundAnything) {
-                    formattedHistory += "<p>Бұл жыл үшін айлар бойынша егжей-тегжейлі деректер табылмады. Жалпы мәлімет:</p>";
-                    const firstParagraph = doc.querySelector('p');
-                    if(firstParagraph) {
-                        formattedHistory += `<div class="event-item">${firstParagraph.innerText}</div>`;
-                    } else {
-                        formattedHistory += `<div class="event-item">${year} жыл туралы мәлімет мұрағатта аз.</div>`;
-                    }
+                    formattedHistory += "<p>Айлар бойынша бөлінген хронология жоқ, бірақ мұрағаттан мынадай деректер табылды:</p>";
+                    let paragraphCount = 0;
+                    
+                    doc.querySelectorAll('p').forEach(p => {
+                        const pText = p.innerText.trim();
+                        if (pText.length > 30 && paragraphCount < 3) {
+                            formattedHistory += `<div class="event-item" style="margin-bottom:15px;">${pText}</div>`;
+                            paragraphCount++;
+                            foundAnything = true;
+                        }
+                    });
+                }
+
+                if (!foundAnything) {
+                    formattedHistory += `<div class="event-item">Уикипедияда ${year} жыл туралы мақала бар, бірақ оның құрылымы өзгеше. Мақаланы толық көру үшін kk.wikipedia.org сайтына өтіңіз.</div>`;
                 }
 
                 resultDiv.innerHTML = formattedHistory;
             } else {
-                resultDiv.innerHTML = "⚠️ Бұл жыл үшін егжей-тегжейлі тарихи жазбалар табылмады.";
+                resultDiv.innerHTML = "⚠️ Бұл жыл үшін Уикипедияда мақала табылмады. Басқа жылды енгізіп көріңіз.";
             }
         } catch (error) {
-            resultDiv.innerHTML = "📡 Байланыс қатесі. Қайтадан байқап көріңіз.";
+            resultDiv.innerHTML = "📡 Байланыс қатесі. Мұрағаттарға қосылу сәтсіз аяқталды.";
         } finally {
             loader.style.display = "none";
             resultDiv.style.opacity = "1";
         }
     }
 
-    // Enter басу арқылы іздеу
+    // Поиск по Enter
     document.getElementById('yearInput').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             fetchHistory();
