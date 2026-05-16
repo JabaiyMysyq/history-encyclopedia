@@ -35,23 +35,34 @@
 
 <main>
     <h2>Жаһандық Таймлайн Агенті</h2>
-    <p>Жылды енгізіңіз (мысалы, 1945 немесе 1991) және Агент сол жылдың негізгі оқиғаларын айлар бойынша көрсетеді.</p>
+    <p>Жылды енгізіңіз (мысалы, 1492 немесе 1914) және Агент сол жылдың негізгі оқиғаларын айлар бойынша қазақша көрсетеді.</p>
 
     <div class="search-section">
-        <input type="number" id="yearInput" placeholder="Жыл (мысалы: 1991)">
+        <input type="number" id="yearInput" placeholder="Жыл (мысалы: 1939)">
         <button onclick="fetchHistory()" class="search-btn">
             <i class="fas fa-search"></i> Оқиғаларды іздеу
         </button>
         
-        <div id="loader" class="loader"><i class="fas fa-spinner fa-spin"></i> Хронология қайта құрылуда...</div>
+        <div id="loader" class="loader"><i class="fas fa-spinner fa-spin"></i> Деректер аударылуда...</div>
         
         <div id="eventResult" class="result-box">
-            Таймлайн дайын. Жылды енгізіп, Издеу немесе Enter пернесін басыңыз.
+            Таймлайн дайын. Жылды енгізіп, Іздеу немесе Enter пернесін басыңыз.
         </div>
     </div>
 </main>
 
 <script>
+    // Функция для онлайн-перевода текста с английского на казахский
+    async function translateToKazakh(text) {
+        try {
+            const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=kk&dt=t&q=${encodeURIComponent(text)}`);
+            const data = await res.json();
+            return data[0].map(item => item[0]).join('');
+        } catch (error) {
+            return text; // Если перевод сбоит, вернем исходный текст, чтобы не ломать сайт
+        }
+    }
+
     async function fetchHistory() {
         const year = document.getElementById('yearInput').value;
         const resultDiv = document.getElementById('eventResult');
@@ -66,8 +77,8 @@
         resultDiv.style.opacity = "0.5";
 
         try {
-            // Запрашиваем всю страницу целиком, чтобы спастись от пустых секций
-            const url = `https://kk.wikipedia.org/w/api.php?action=parse&page=${year}&prop=text&format=json&origin=*`;
+            // ШАГ 1: Загружаем идеально структурированную английскую страницу года
+            const url = `https://en.wikipedia.org/w/api.php?action=parse&page=${year}&prop=text&format=json&origin=*`;
             const response = await fetch(url);
             const data = await response.json();
 
@@ -78,80 +89,81 @@
                 
                 let formattedHistory = `<h3><i class="fas fa-calendar-alt"></i> ${year} жылдың басты оқиғалары</h3>`;
                 
-                // Названия месяцев для поиска в любом регистре и с любыми окончаниями
+                // Английские месяцы для поиска по структуре Wikipedia
                 const months = [
-                    { name: "Қаңтар", search: "қаңтар" },
-                    { name: "Ақпан", search: "ақпан" },
-                    { name: "Наурыз", search: "наурыз" },
-                    { name: "Сәуір", search: "сәуір" },
-                    { name: "Мамыр", search: "мамыр" },
-                    { name: "Маусым", search: "маусым" },
-                    { name: "Шілде", search: "шілде" },
-                    { name: "Тамыз", search: "тамыз" },
-                    { name: "Қыркүйек", search: "қыркүйе" },
-                    { name: "Қазан", search: "қазан" },
-                    { name: "Қараша", search: "қараша" },
-                    { name: "Желтоқсан", search: "желтоқс" }
+                    { en: "January", kk: "Қаңтар" }, { en: "February", kk: "Ақпан" },
+                    { en: "March", kk: "Наурыз" }, { en: "April", kk: "Сәуір" },
+                    { en: "May", kk: "Мамыр" }, { en: "June", kk: "Маусым" },
+                    { en: "July", kk: "Шілде" }, { en: "August", kk: "Тамыз" },
+                    { en: "September", kk: "Қыркүйек" }, { en: "October", kk: "Қазан" },
+                    { en: "November", kk: "Қараша" }, { en: "December", kk: "Желтоқсан" }
                 ];
                 
                 let foundAnything = false;
-                
-                // Ищем тексты во ВСЕХ возможных элементах (списки и абзацы)
-                const allElements = doc.querySelectorAll('li, p');
+                const allElements = doc.querySelectorAll('li');
 
-                months.forEach(month => {
+                // Перебираем каждый месяц
+                for (const month of months) {
                     let monthEvents = [];
                     
                     allElements.forEach(el => {
                         const txt = el.innerText.trim();
-                        const txtLower = txt.toLowerCase();
-                        
-                        // Если текст длинный, содержит месяц и это не служебная ссылка Википедии
-                        if (txtLower.includes(month.search) && txt.length > 25) {
-                            if (!txtLower.includes("басқа мағыналар") && !txtLower.includes("ортаққорда") && !txtLower.includes("сілтемелер")) {
-                                // Избегаем дубликатов
-                                if (!monthEvents.includes(txt)) {
-                                    monthEvents.push(txt);
-                                }
+                        // Проверяем, относится ли событие к текущему месяцу
+                        if (el.parentElement && el.parentElement.previousElementSibling) {
+                            const heading = el.parentElement.previousElementSibling.innerText;
+                            if (heading && heading.includes(month.en) && txt.length > 15) {
+                                monthEvents.push(txt);
                             }
+                        }
+                        // Запасной поиск, если структура списков плоская
+                        if (monthEvents.length < 2 && txt.startsWith(month.en) && txt.length > 20) {
+                            monthEvents.push(txt);
                         }
                     });
 
                     if (monthEvents.length > 0) {
                         foundAnything = true;
-                        formattedHistory += `<div class="month-header">${month.name}</div>`;
-                        // Выводим топ-3 события на месяц
-                        monthEvents.slice(0, 3).forEach(ev => {
-                            formattedHistory += `<div class="event-item">• ${ev}</div>`;
-                        });
-                    }
-                });
-
-                // Сверхнадежный резервный план: если по месяцам разбить не удалось, вытаскиваем первые осмысленные абзацы
-                if (!foundAnything) {
-                    formattedHistory += "<p>Айлар бойынша бөлінген хронология жоқ, бірақ мұрағаттан мынадай деректер табылды:</p>";
-                    let paragraphCount = 0;
-                    
-                    doc.querySelectorAll('p').forEach(p => {
-                        const pText = p.innerText.trim();
-                        if (pText.length > 30 && paragraphCount < 3) {
-                            formattedHistory += `<div class="event-item" style="margin-bottom:15px;">${pText}</div>`;
-                            paragraphCount++;
-                            foundAnything = true;
+                        formattedHistory += `<div class="month-header">${month.kk}</div>`;
+                        
+                        // Берем первые 2-3 важных события, чтобы не перегружать переводчик
+                        const limitedEvents = monthEvents.slice(0, 2);
+                        
+                        for (let ev of limitedEvents) {
+                            // Переводим текст события на казахский перед выводом
+                            const translatedEvent = await translateToKazakh(ev);
+                            formattedHistory += `<div class="event-item">• ${translatedEvent}</div>`;
                         }
-                    });
+                    }
+                }
+
+                // Резервный план, если разбить по месяцам не вышло (древние года)
+                if (!foundAnything) {
+                    formattedHistory += "<p>Айлар бойынша хронология табылған жоқ. Жалпы сипаттама:</p>";
+                    let pText = "";
+                    const paragraphs = doc.querySelectorAll('p');
+                    for (let p of paragraphs) {
+                        if (p.innerText.trim().length > 40) {
+                            pText = p.innerText.trim();
+                            break;
+                        }
+                    }
+                    if (pText) {
+                        const translatedSummary = await translateToKazakh(pText);
+                        formattedHistory += `<div class="event-item">${translatedSummary}</div>`;
+                        foundAnything = true;
+                    }
                 }
 
                 if (!foundAnything) {
-                    formattedHistory += `<div class="event-item">Уикипедияда ${year} жыл туралы мақала бар, бірақ оның құрылымы өзгеше. Мақаланы толық көру үшін kk.wikipedia.org сайтына өтіңіз.</div>`;
+                    formattedHistory += `<div class="event-item">Мұрағатта бұл жыл туралы деректер өте аз.</div>`;
                 }
 
                 resultDiv.innerHTML = formattedHistory;
             } else {
-                resultDiv.innerHTML = "⚠️ Бұл жыл үшін Уикипедияда мақала табылмады. Басқа жылды енгізіп көріңіз.";
+                resultDiv.innerHTML = "⚠️ Бұл жыл үшін мақала табылмады. Басқа жылды енгізіп көріңіз.";
             }
         } catch (error) {
-            resultDiv.innerHTML = "📡 Байланыс қатесі. Мұрағаттарға қосылу сәтсіз аяқталды.";
+            resultDiv.innerHTML = "📡 Байланыс қатесі немесе аударма сервері жауап бермеді.";
         } finally {
             loader.style.display = "none";
             resultDiv.style.opacity = "1";
